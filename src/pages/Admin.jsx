@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, Home, Save, X, Upload } from 'lucide-react'
 import API_URL from '../config'
+import AdminDashboard from '../components/AdminDashboard'
 
 const Admin = () => {
   const navigate = useNavigate()
@@ -141,6 +142,8 @@ const Admin = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
+        {/* Dashboard Stats */}
+        <AdminDashboard products={products} />
         {/* Add Product Button */}
         {!showForm && (
           <button
