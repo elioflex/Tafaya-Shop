@@ -1,40 +1,45 @@
 import React from 'react'
 import { Star, Quote } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import { t } from '../translations/translations'
 
 const Testimonials = () => {
+  const { language } = useLanguage()
+  
   const testimonials = [
     {
       name: 'Ahmed M.',
-      location: 'Casablanca',
+      location: t('casablanca', language),
       rating: 5,
-      text: 'Amazing quality! The ashtray is beautiful and exactly what I wanted. Highly recommend!',
-      image: 'https://ui-avatars.com/api/?name=Ahmed+M&background=8B4513&color=fff'
+      text: t('testimonial1', language),
+      image: 'https://ui-avatars.com/api/?name=Ahmed+M&background=d97706&color=fff'
     },
     {
       name: 'Fatima Z.',
-      location: 'Marrakech',
+      location: t('marrakech', language),
       rating: 5,
-      text: 'Perfect gift for my husband. The craftsmanship is incredible. Will order again!',
-      image: 'https://ui-avatars.com/api/?name=Fatima+Z&background=D2691E&color=fff'
+      text: t('testimonial2', language),
+      image: 'https://ui-avatars.com/api/?name=Fatima+Z&background=b45309&color=fff'
     },
     {
       name: 'Youssef K.',
-      location: 'Rabat',
+      location: t('rabat', language),
       rating: 5,
-      text: 'Custom design came out perfect. Great communication and fast delivery!',
-      image: 'https://ui-avatars.com/api/?name=Youssef+K&background=CD853F&color=fff'
+      text: t('testimonial3', language),
+      image: 'https://ui-avatars.com/api/?name=Youssef+K&background=fbbf24&color=000'
     }
   ]
 
   return (
-    <section className="py-16 bg-gradient-to-br from-amber-50 to-orange-50">
+    <section className="py-20 bg-dark-900">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            What Our Customers Say
+        <div className="text-center mb-16">
+          <h2 className="text-5xl md:text-6xl font-black text-white mb-6">
+            {t('customersSay', language)}
           </h2>
-          <p className="text-xl text-gray-600">
-            Join hundreds of satisfied customers
+          <div className="w-24 h-1 bg-gold-gradient mx-auto mb-6"></div>
+          <p className="text-xl text-gray-400 font-light">
+            {t('joinCustomers', language)}
           </p>
         </div>
 
@@ -42,29 +47,29 @@ const Testimonials = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-shadow relative"
+              className="bg-dark-800 border border-gold-600 border-opacity-20 rounded-xl shadow-2xl p-8 hover:border-opacity-50 transition-all relative"
             >
-              <Quote className="absolute top-4 right-4 w-8 h-8 text-amber-200" />
+              <Quote className="absolute top-6 right-6 w-10 h-10 text-gold-600 opacity-20" />
               
-              <div className="flex items-center mb-4">
+              <div className="flex items-center mb-6">
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="w-14 h-14 rounded-full mr-4"
+                  className="w-16 h-16 rounded-full mr-4 border-2 border-gold-600"
                 />
                 <div>
-                  <h4 className="font-semibold text-gray-800">{testimonial.name}</h4>
-                  <p className="text-sm text-gray-500">{testimonial.location}</p>
+                  <h4 className="font-bold text-white text-lg">{testimonial.name}</h4>
+                  <p className="text-sm text-gray-400">{testimonial.location}</p>
                 </div>
               </div>
 
-              <div className="flex mb-3">
+              <div className="flex mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                  <Star key={i} className="w-5 h-5 text-gold-400 fill-current" />
                 ))}
               </div>
 
-              <p className="text-gray-600 italic">"{testimonial.text}"</p>
+              <p className="text-gray-300 italic leading-relaxed">"{testimonial.text}"</p>
             </div>
           ))}
         </div>
