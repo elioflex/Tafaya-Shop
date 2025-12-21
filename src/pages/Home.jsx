@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ShoppingBag, MessageCircle, Instagram, Facebook } from 'lucide-react'
+import API_URL from '../config'
 
 const Home = () => {
   const [products, setProducts] = useState([])
@@ -12,7 +13,7 @@ const Home = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products')
+      const response = await fetch(`${API_URL}/api/products`)
       const data = await response.json()
       setProducts(data)
     } catch (error) {
@@ -99,10 +100,10 @@ const Home = () => {
                 >
                   <div className="aspect-square bg-gray-200 overflow-hidden">
                     <img
-                      src={product.image?.startsWith('http') ? product.image : `http://localhost:5001${product.image}`}
+                      src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
                       alt={product.name}
                       className="w-full h-full object-cover"
-                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400?text=Tfaya+Ashtray' }}
+                      onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400?text=Tafaya+Ashtray' }}
                     />
                   </div>
                   <div className="p-4">

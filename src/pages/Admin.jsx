@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2, Trash2, Home, Save, X, Upload } from 'lucide-react'
+import API_URL from '../config'
 
 const Admin = () => {
   const navigate = useNavigate()
@@ -22,7 +23,7 @@ const Admin = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products')
+      const response = await fetch(`${API_URL}/api/products`)
       const data = await response.json()
       setProducts(data)
     } catch (error) {
@@ -52,7 +53,7 @@ const Admin = () => {
         const formDataUpload = new FormData()
         formDataUpload.append('image', imageFile)
         
-        const uploadResponse = await fetch('/api/upload', {
+        const uploadResponse = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
           body: formDataUpload
         })
@@ -67,13 +68,13 @@ const Admin = () => {
       }
 
       if (editingProduct) {
-        await fetch(`/api/products/${editingProduct.id}`, {
+        await fetch(`${API_URL}/api/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productData)
         })
       } else {
-        await fetch('/api/products', {
+        await fetch(`${API_URL}/api/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(productData)
@@ -96,7 +97,7 @@ const Admin = () => {
       price: product.price || '',
       image: product.image || ''
     })
-    const previewUrl = product.image?.startsWith('http') ? product.image : `http://localhost:5001${product.image}`
+    const previewUrl = product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`
     setImagePreview(previewUrl)
     setShowForm(true)
   }
@@ -104,7 +105,7 @@ const Admin = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await fetch(`/api/products/${id}`, {
+        await fetch(`${API_URL}/api/products/${id}`, {
           method: 'DELETE'
         })
         fetchProducts()
@@ -308,7 +309,7 @@ const Admin = () => {
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <img
-                          src={product.image?.startsWith('http') ? product.image : `http://localhost:5001${product.image}`}
+                          src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
                           alt={product.name}
                           className="w-16 h-16 object-cover rounded-lg"
                           onError={(e) => { e.target.src = 'https://via.placeholder.com/100x100?text=No+Image' }}
