@@ -100,7 +100,7 @@ const Home = () => {
                 >
                   <div className="aspect-square bg-gray-200 overflow-hidden">
                     <img
-                      src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
+                      src={product.image || 'https://via.placeholder.com/400x400?text=Tafaya+Ashtray'}
                       alt={product.name}
                       className="w-full h-full object-cover"
                       onError={(e) => { e.target.src = 'https://via.placeholder.com/400x400?text=Tafaya+Ashtray' }}

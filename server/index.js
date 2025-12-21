@@ -4,9 +4,16 @@ const multer = require('multer')
 const path = require('path')
 const fs = require('fs')
 const { v4: uuidv4 } = require('uuid')
+const cloudinary = require('cloudinary').v2
 
 const app = express()
 const PORT = 5001
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dyztnskbj',
+  api_key: process.env.CLOUDINARY_API_KEY || '229784152581655',
+  api_secret: process.env.CLOUDINARY_API_SECRET || 'PZ1X-ZXD2-0wwVpoBY9wpGuOvqY'
+})
 
 app.use(cors())
 app.use(express.json())
@@ -17,15 +24,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true })
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir)
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${uuidv4()}${path.extname(file.originalname)}`
-    cb(null, uniqueName)
-  }
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
   storage,
@@ -131,13 +130,31 @@ app.delete('/api/products/:id', (req, res) => {
   }
 })
 
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', upload.single('image'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' })
   }
   
-  const imageUrl = `/uploads/${req.file.filename}`
-  res.json({ imageUrl })
+  try {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'tafaya-shop',
+        resource_type: 'image'
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error)
+          return res.status(500).json({ error: 'Failed to upload image' })
+        }
+        res.json({ imageUrl: result.secure_url })
+      }
+    )
+    
+    uploadStream.end(req.file.buffer)
+  } catch (error) {
+    console.error('Upload error:', error)
+    res.status(500).json({ error: 'Failed to upload image' })
+  }
 })
 
 app.listen(PORT, () => {

@@ -97,8 +97,7 @@ const Admin = () => {
       price: product.price || '',
       image: product.image || ''
     })
-    const previewUrl = product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`
-    setImagePreview(previewUrl)
+    setImagePreview(product.image || '')
     setShowForm(true)
   }
 
@@ -309,7 +308,7 @@ const Admin = () => {
                     <tr key={product.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <img
-                          src={product.image?.startsWith('http') ? product.image : `${API_URL}${product.image}`}
+                          src={product.image || 'https://via.placeholder.com/100x100?text=No+Image'}
                           alt={product.name}
                           className="w-16 h-16 object-cover rounded-lg"
                           onError={(e) => { e.target.src = 'https://via.placeholder.com/100x100?text=No+Image' }}
