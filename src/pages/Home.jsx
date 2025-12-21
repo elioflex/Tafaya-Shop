@@ -66,7 +66,7 @@ const Home = () => {
                 <ShoppingBag className="w-8 h-8 text-dark-900" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold gold-shine">
+                <h1 className="text-2xl font-bold text-gold-400">
                   {t('shopName', language)}
                 </h1>
                 <p className="text-sm text-gray-400">{t('shopTagline', language)}</p>
