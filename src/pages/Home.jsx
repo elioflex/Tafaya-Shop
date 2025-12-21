@@ -53,23 +53,23 @@ const Home = () => {
     })
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50">
+    <div className="min-h-screen bg-dark-900">
       {/* Floating WhatsApp Button */}
       <FloatingWhatsApp />
 
       {/* Header */}
-      <header className="bg-white shadow-md sticky top-0 z-40 backdrop-blur-sm bg-opacity-95">
+      <header className="bg-dark-800 bg-opacity-95 shadow-2xl sticky top-0 z-40 backdrop-blur-md border-b border-gold-600 border-opacity-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-lg">
-                <ShoppingBag className="w-8 h-8 text-white" />
+              <div className="bg-gold-gradient p-2 rounded-lg animate-glow">
+                <ShoppingBag className="w-8 h-8 text-dark-900" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold gold-shine">
                   {t('shopName', language)}
                 </h1>
-                <p className="text-sm text-gray-600">{t('shopTagline', language)}</p>
+                <p className="text-sm text-gray-400">{t('shopTagline', language)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -87,42 +87,53 @@ const Home = () => {
       </header>
 
       {/* Enhanced Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden">
-        {/* Animated Background Elements */}
+      <section className="relative py-20 px-4 overflow-hidden bg-luxury-gradient">
+        {/* Video/Smoke Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-primary opacity-10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary opacity-10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-dark-900 to-dark-900 opacity-80"></div>
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-gold-400 rounded-full opacity-20 animate-float"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 10}s`,
+                animationDuration: `${10 + Math.random() * 20}s`
+              }}
+            />
+          ))}
         </div>
 
-        <div className="container mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-md mb-6">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-gray-700">{t('handmadeTitle', language)}</span>
+        <div className="container mx-auto text-center relative z-10 luxury-fade-in">
+          <div className="inline-flex items-center gap-2 bg-dark-800 border border-gold-600 border-opacity-30 px-6 py-3 rounded-full shadow-2xl mb-8 backdrop-blur-sm">
+            <Sparkles className="w-5 h-5 text-gold-400 animate-pulse" />
+            <span className="text-sm font-bold text-gold-400 tracking-wider uppercase">{t('handmadeTitle', language)}</span>
           </div>
 
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold text-gray-800 mb-6 leading-tight">
+          <h2 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-6 leading-tight tracking-tight">
             {t('heroTitle', language)}
             <br />
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="gold-shine text-7xl md:text-8xl lg:text-9xl">
               {t('heroSubtitle', language)}
             </span>
           </h2>
 
-          <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
             {t('heroDescription', language)}
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <button
               onClick={openWhatsApp}
-              className="bg-primary hover:bg-secondary text-white px-10 py-4 rounded-full text-lg font-bold transition-all shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center gap-2"
+              className="bg-gold-gradient hover:shadow-gold-600 text-dark-900 px-12 py-5 rounded-full text-lg font-black transition-all shadow-2xl hover:shadow-[0_0_40px_rgba(217,119,6,0.6)] transform hover:scale-110 flex items-center gap-3 uppercase tracking-wider animate-glow"
             >
-              <MessageCircle className="w-5 h-5" />
+              <MessageCircle className="w-6 h-6" />
               {t('orderCustom', language)}
             </button>
             <a
               href="#products"
-              className="bg-white hover:bg-gray-50 text-primary px-10 py-4 rounded-full text-lg font-bold transition-all shadow-lg hover:shadow-xl border-2 border-primary"
+              className="bg-transparent hover:bg-dark-700 text-gold-400 px-12 py-5 rounded-full text-lg font-bold transition-all shadow-lg hover:shadow-2xl border-2 border-gold-600 hover:border-gold-400 uppercase tracking-wider"
             >
               {t('viewCollection', language)}
             </a>
@@ -150,13 +161,14 @@ const Home = () => {
       <TrustBadges />
 
       {/* Products Section */}
-      <section id="products" className="py-16 px-4">
+      <section id="products" className="py-20 px-4 bg-dark-900">
         <div className="container mx-auto">
-          <div className="text-center mb-12">
-            <h3 className="text-4xl font-bold text-gray-800 mb-4">
+          <div className="text-center mb-16">
+            <h3 className="text-5xl md:text-6xl font-black text-white mb-6">
               {t('ourCollection', language)}
             </h3>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <div className="w-24 h-1 bg-gold-gradient mx-auto mb-6"></div>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto font-light">
               {t('browseCollection', language)}
             </p>
           </div>
