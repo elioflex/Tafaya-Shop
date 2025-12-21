@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, MessageCircle, ShoppingBag, Share2, Heart, ZoomIn, Star, Shield, Truck } from 'lucide-react'
 import API_URL from '../config'
+import { useLanguage } from '../contexts/LanguageContext'
+import { t } from '../translations/translations'
 import FloatingWhatsApp from '../components/FloatingWhatsApp'
+import LanguageToggle from '../components/LanguageToggle'
 
 const ProductDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { language } = useLanguage()
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
@@ -36,23 +40,23 @@ const ProductDetail = () => {
 
   const orderOnWhatsApp = () => {
     const phone = '212684048574'
-    let message = `Hello! I would like to order:\n\n*${product.name}*\n`
+    let message = `${t('whatsappOrder', language)}\n\n*${product.name}*\n`
     
     if (product.price) {
-      message += `Price: ${product.price} MAD\n`
+      message += `${t('price', language)}: ${product.price} MAD\n`
     }
     
     if (customization.size) {
-      message += `Size: ${customization.size}\n`
+      message += `${t('size', language)}: ${customization.size}\n`
     }
     if (customization.color) {
-      message += `Color: ${customization.color}\n`
+      message += `${t('colorPreference', language)}: ${customization.color}\n`
     }
     if (customization.design) {
-      message += `Design: ${customization.design}\n`
+      message += `${t('designStyle', language)}: ${customization.design}\n`
     }
     if (customization.notes) {
-      message += `\nAdditional Notes:\n${customization.notes}`
+      message += `\n${t('additionalNotes', language)}:\n${customization.notes}`
     }
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
@@ -70,10 +74,10 @@ const ProductDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading product...</p>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-gold-600"></div>
+          <p className="mt-4 text-gray-400 font-medium">{t('loadingProduct', language)}</p>
         </div>
       </div>
     )
@@ -81,15 +85,15 @@ const ProductDetail = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
         <div className="text-center">
-          <ShoppingBag className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 text-xl mb-4">Product not found</p>
+          <ShoppingBag className="w-20 h-20 text-gold-600 mx-auto mb-4 opacity-50" />
+          <p className="text-gray-400 text-xl mb-4">{t('noProducts', language)}</p>
           <button
             onClick={() => navigate('/')}
-            className="text-primary hover:text-secondary font-semibold"
+            className="text-gold-400 hover:text-gold-300 font-semibold"
           >
-            Back to Shop
+            {t('backToShop', language)}
           </button>
         </div>
       </div>
@@ -97,33 +101,34 @@ const ProductDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
+    <div className="min-h-screen bg-dark-900">
       <FloatingWhatsApp />
 
       {/* Header */}
-      <header className="bg-white shadow-md sticky top-0 z-40">
+      <header className="bg-dark-800 bg-opacity-95 shadow-2xl sticky top-0 z-40 backdrop-blur-md border-b border-gold-600 border-opacity-20">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate('/')}
-              className="flex items-center space-x-2 text-gray-700 hover:text-primary transition-colors"
+              className="flex items-center space-x-2 text-gray-400 hover:text-gold-400 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span className="font-semibold">Back to Shop</span>
+              <span className="font-semibold">{t('backToShop', language)}</span>
             </button>
             
             <div className="flex items-center gap-3">
+              <LanguageToggle />
               <button
                 onClick={() => setIsFavorite(!isFavorite)}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-dark-700 transition-colors"
               >
                 <Heart className={`w-6 h-6 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
               </button>
               <button
                 onClick={shareProduct}
-                className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-full hover:bg-dark-700 transition-colors"
               >
-                <Share2 className="w-6 h-6 text-gray-600" />
+                <Share2 className="w-6 h-6 text-gray-400" />
               </button>
             </div>
           </div>
@@ -132,10 +137,10 @@ const ProductDetail = () => {
 
       {/* Product Detail */}
       <div className="container mx-auto px-4 py-12">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-dark-800 border border-gold-600 border-opacity-20 rounded-3xl shadow-2xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Product Image */}
-            <div className="relative bg-gray-100 aspect-square lg:aspect-auto">
+            <div className="relative bg-dark-900 aspect-square lg:aspect-auto">
               <img
                 src={product.image || 'https://via.placeholder.com/800x800?text=Tafaya+Ashtray'}
                 alt={product.name}
@@ -143,17 +148,17 @@ const ProductDetail = () => {
                 onClick={() => setImageZoom(true)}
                 onError={(e) => { e.target.src = 'https://via.placeholder.com/800x800?text=Tafaya+Ashtray' }}
               />
-              <div className="absolute bottom-4 right-4 bg-white rounded-full p-3 shadow-lg">
-                <ZoomIn className="w-5 h-5 text-gray-600" />
+              <div className="absolute bottom-4 right-4 bg-dark-800 border border-gold-600 border-opacity-30 rounded-full p-3 shadow-lg">
+                <ZoomIn className="w-5 h-5 text-gold-400" />
               </div>
-              <div className="absolute top-4 left-4 bg-primary text-white px-4 py-2 rounded-full font-semibold">
-                Handmade
+              <div className="absolute top-4 left-4 bg-gold-gradient text-dark-900 px-4 py-2 rounded-full font-bold uppercase tracking-wider">
+                {t('handmadeBadge', language)}
               </div>
             </div>
 
             {/* Product Info & Customization */}
             <div className="p-8 lg:p-12">
-              <h1 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-4">
+              <h1 className="text-4xl lg:text-5xl font-black text-white mb-4">
                 {product.name}
               </h1>
               
@@ -161,100 +166,100 @@ const ProductDetail = () => {
               <div className="flex items-center gap-2 mb-6">
                 <div className="flex">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                    <Star key={i} className="w-5 h-5 text-gold-400 fill-current" />
                   ))}
                 </div>
-                <span className="text-gray-600">(50+ reviews)</span>
+                <span className="text-gray-400">(50+ {t('reviews', language)})</span>
               </div>
 
               {product.price && (
                 <div className="mb-8">
-                  <p className="text-5xl font-bold text-primary mb-2">
+                  <p className="text-5xl font-black gold-shine mb-2">
                     {product.price} <span className="text-2xl">MAD</span>
                   </p>
-                  <p className="text-gray-500">Free delivery across Morocco</p>
+                  <p className="text-gray-400">{t('freeDelivery', language)}</p>
                 </div>
               )}
 
-              <p className="text-gray-700 text-lg mb-8 leading-relaxed">
+              <p className="text-gray-300 text-lg mb-8 leading-relaxed">
                 {product.description}
               </p>
 
               {/* Features */}
-              <div className="grid grid-cols-3 gap-4 mb-8 p-6 bg-amber-50 rounded-xl">
+              <div className="grid grid-cols-3 gap-4 mb-8 p-6 bg-dark-900 border border-gold-600 border-opacity-20 rounded-xl">
                 <div className="text-center">
-                  <Shield className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-gray-700">Quality Guaranteed</p>
+                  <Shield className="w-8 h-8 text-gold-400 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-gray-300">{t('qualityGuaranteed', language)}</p>
                 </div>
                 <div className="text-center">
-                  <Heart className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-gray-700">Handcrafted</p>
+                  <Heart className="w-8 h-8 text-gold-400 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-gray-300">{t('handcrafted', language)}</p>
                 </div>
                 <div className="text-center">
-                  <Truck className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="text-sm font-semibold text-gray-700">Fast Delivery</p>
+                  <Truck className="w-8 h-8 text-gold-400 mx-auto mb-2" />
+                  <p className="text-sm font-semibold text-gray-300">{t('fastDelivery', language)}</p>
                 </div>
               </div>
 
               {/* Customization Options */}
               <div className="space-y-6 mb-8">
-                <h3 className="text-2xl font-bold text-gray-800 mb-4">
-                  Customize Your Order
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  {t('customizeOrder', language)}
                 </h3>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Size
+                  <label className="block text-sm font-semibold text-gray-400 mb-2">
+                    {t('size', language)}
                   </label>
                   <select
                     value={customization.size}
                     onChange={(e) => setCustomization({ ...customization, size: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white transition-all"
                   >
-                    <option value="">Select size</option>
-                    <option value="Small">Small (8cm)</option>
-                    <option value="Medium">Medium (12cm)</option>
-                    <option value="Large">Large (16cm)</option>
-                    <option value="Custom">Custom Size</option>
+                    <option value="">{t('selectSize', language)}</option>
+                    <option value="Small">{t('small', language)} (8cm)</option>
+                    <option value="Medium">{t('medium', language)} (12cm)</option>
+                    <option value="Large">{t('large', language)} (16cm)</option>
+                    <option value="Custom">{t('customSize', language)}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Color Preference
+                  <label className="block text-sm font-semibold text-gray-400 mb-2">
+                    {t('colorPreference', language)}
                   </label>
                   <input
                     type="text"
                     value={customization.color}
                     onChange={(e) => setCustomization({ ...customization, color: e.target.value })}
-                    placeholder="e.g., Black, White, Blue, Custom color..."
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    placeholder={t('colorPlaceholder', language)}
+                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Design Style
+                  <label className="block text-sm font-semibold text-gray-400 mb-2">
+                    {t('designStyle', language)}
                   </label>
                   <input
                     type="text"
                     value={customization.design}
                     onChange={(e) => setCustomization({ ...customization, design: e.target.value })}
-                    placeholder="e.g., Minimalist, Geometric, Traditional..."
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                    placeholder={t('designPlaceholder', language)}
+                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Additional Notes
+                  <label className="block text-sm font-semibold text-gray-400 mb-2">
+                    {t('additionalNotes', language)}
                   </label>
                   <textarea
                     value={customization.notes}
                     onChange={(e) => setCustomization({ ...customization, notes: e.target.value })}
-                    placeholder="Any special requests or details..."
+                    placeholder={t('notesPlaceholder', language)}
                     rows="4"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all"
+                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 resize-none transition-all"
                   />
                 </div>
               </div>
@@ -262,14 +267,14 @@ const ProductDetail = () => {
               {/* Order Button */}
               <button
                 onClick={orderOnWhatsApp}
-                className="w-full bg-green-500 hover:bg-green-600 text-white py-5 rounded-xl font-bold text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 transform hover:scale-105"
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-5 rounded-xl font-black text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 transform hover:scale-105 uppercase tracking-wider"
               >
                 <MessageCircle className="w-6 h-6" />
-                <span>Order on WhatsApp</span>
+                <span>{t('orderOnWhatsApp', language)}</span>
               </button>
 
               <p className="text-center text-gray-500 text-sm mt-4">
-                💬 You'll be redirected to WhatsApp to complete your order
+                {t('redirectMessage', language)}
               </p>
             </div>
           </div>
