@@ -131,21 +131,38 @@ app.delete('/api/products/:id', (req, res) => {
 })
 
 app.post('/api/upload', upload.single('image'), async (req, res) => {
+  console.log('Upload request received')
+  
   if (!req.file) {
+    console.error('No file in request')
     return res.status(400).json({ error: 'No file uploaded' })
   }
+  
+  console.log('File received:', {
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size
+  })
+  
+  console.log('Cloudinary config:', {
+    cloud_name: cloudinary.config().cloud_name,
+    api_key: cloudinary.config().api_key,
+    has_secret: !!cloudinary.config().api_secret
+  })
   
   try {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'tafaya-shop',
-        resource_type: 'image'
+        resource_type: 'image',
+        public_id: `product_${Date.now()}`
       },
       (error, result) => {
         if (error) {
           console.error('Cloudinary upload error:', error)
-          return res.status(500).json({ error: 'Failed to upload image' })
+          return res.status(500).json({ error: 'Failed to upload image', details: error.message })
         }
+        console.log('Upload successful:', result.secure_url)
         res.json({ imageUrl: result.secure_url })
       }
     )
@@ -153,7 +170,7 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
     uploadStream.end(req.file.buffer)
   } catch (error) {
     console.error('Upload error:', error)
-    res.status(500).json({ error: 'Failed to upload image' })
+    res.status(500).json({ error: 'Failed to upload image', details: error.message })
   }
 })
 
