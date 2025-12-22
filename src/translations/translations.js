@@ -253,9 +253,9 @@ export const translations = {
     backToShop: 'العودة إلى المتجر',
     
     // Hero Section
-    heroTitle: 'منافض تفايا',
+    heroTitle: 'تفايات',
     heroSubtitle: 'مصنوعة يدوياً',
-    heroDescription: 'اكتشف منافض سجائر فريدة، مصنوعة يدوياً بشغف ودقة. كل قطعة مخصصة حسب مواصفاتك.',
+    heroDescription: 'اكتشف تفايات سجائر فريدة، مصنوعة يدوياً بشغف ودقة. كل قطعة مخصصة حسب مواصفاتك.',
     orderCustom: 'اطلب منفضة مخصصة',
     viewCollection: 'عرض المجموعة',
     
@@ -363,7 +363,7 @@ export const translations = {
     loadingProduct: 'جاري تحميل المنتج...',
     
     // WhatsApp Messages
-    whatsappGreeting: 'مرحباً! أود معرفة المزيد عن منافض تفايا المصنوعة يدوياً.',
+    whatsappGreeting: 'مرحباً! أود معرفة المزيد عن تفايات المصنوعة يدوياً.',
     whatsappOrder: 'مرحباً! أود طلب:',
     whatsappInterested: 'مرحباً! أنا مهتم بـ',
   }
