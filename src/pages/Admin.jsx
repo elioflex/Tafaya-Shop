@@ -59,8 +59,20 @@ const Admin = () => {
           body: formDataUpload
         })
         
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json()
+          throw new Error(`Upload failed: ${errorData.error || 'Unknown error'}`)
+        }
+        
         const uploadData = await uploadResponse.json()
+        console.log('Upload response:', uploadData)
+        
+        if (!uploadData.imageUrl) {
+          throw new Error('No image URL returned from upload')
+        }
+        
         imageUrl = uploadData.imageUrl
+        console.log('Image URL to save:', imageUrl)
       }
 
       const productData = {
