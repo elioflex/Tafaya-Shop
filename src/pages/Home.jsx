@@ -87,10 +87,15 @@ const Home = () => {
       </header>
 
       {/* Enhanced Hero Section */}
-      <section className="relative py-20 px-4 overflow-hidden bg-luxury-gradient">
-        {/* Video/Smoke Background */}
+      <section className="relative py-20 px-4 overflow-hidden">
+        {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-dark-900 to-dark-900 opacity-80"></div>
+          <img 
+            src="/hero-background.png" 
+            alt="Background" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-900/60 via-dark-900/70 to-dark-900 opacity-90"></div>
           {[...Array(30)].map((_, i) => (
             <div
               key={i}
