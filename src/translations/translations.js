@@ -248,7 +248,7 @@ export const translations = {
   ar: {
     // Header
     shopName: 'متجر تفايا',
-    shopTagline: 'منافض سجائر مصنوعة يدوياً',
+    shopTagline: 'تفايات سجائر مصنوعة يدوياً',
     contactUs: 'اتصل بنا',
     backToShop: 'العودة إلى المتجر',
     
@@ -256,7 +256,7 @@ export const translations = {
     heroTitle: 'تفايات',
     heroSubtitle: 'مصنوعة يدوياً',
     heroDescription: 'اكتشف تفايات سجائر فريدة، مصنوعة يدوياً بشغف ودقة. كل قطعة مخصصة حسب مواصفاتك.',
-    orderCustom: 'اطلب منفضة مخصصة',
+    orderCustom: 'اطلب  تفاية مخصصة',
     viewCollection: 'عرض المجموعة',
     
     // Stats
@@ -276,7 +276,7 @@ export const translations = {
     
     // Products
     ourCollection: 'مجموعتنا',
-    browseCollection: 'تصفح مجموعتنا الحصرية من المنافض المصنوعة يدوياً',
+    browseCollection: 'تصفح مجموعتنا الحصرية من تفايات المصنوعة يدوياً',
     searchProducts: 'البحث عن المنتجات...',
     sortBy: 'ترتيب حسب',
     newest: 'الأحدث أولاً',
@@ -287,7 +287,7 @@ export const translations = {
     noProductsFound: 'لم يتم العثور على منتجات',
     tryAdjusting: 'حاول تعديل بحثك',
     clearSearch: 'مسح البحث',
-    checkBackSoon: 'تحقق قريباً للحصول على منافض يدوية مذهلة!',
+    checkBackSoon: 'تحقق قريباً للحصول على تفايات يدوية مذهلة!',
     viewDetails: 'عرض التفاصيل',
     order: 'اطلب',
     handmadeBadge: 'صنع يدوي',
@@ -309,7 +309,7 @@ export const translations = {
     // Testimonials
     customersSay: 'ماذا يقول عملاؤنا',
     joinCustomers: 'انضم إلى مئات العملاء الراضين',
-    testimonial1: 'جودة مذهلة! المنفضة جميلة وبالضبط ما أردت. أوصي بشدة!',
+    testimonial1: 'جودة مذهلة!  تفاية جميلة وبالضبط ما أردت. أوصي بشدة!',
     testimonial2: 'هدية مثالية لزوجي. الحرفية لا تصدق. سأطلب مرة أخرى!',
     testimonial3: 'التصميم المخصص خرج مثالياً. تواصل رائع وتوصيل سريع!',
     casablanca: 'الدار البيضاء',
@@ -317,12 +317,12 @@ export const translations = {
     rabat: 'الرباط',
     
     // CTA Section
-    readyToOrder: 'هل أنت مستعد لطلب منفضة مخصصة؟',
+    readyToOrder: 'هل أنت مستعد لطلب تفاية مخصصة؟',
     ctaDescription: 'اتصل بنا على واتساب ولنصنع شيئاً فريداً معاً',
     startOrder: 'ابدأ طلبك الآن',
     
     // Footer
-    footerDescription: 'منافض سجائر مخصصة مصنوعة يدوياً بشغف ودقة. كل قطعة تحكي قصة فريدة.',
+    footerDescription: 'تفايات سجائر مخصصة مصنوعة يدوياً بشغف ودقة. كل قطعة تحكي قصة فريدة.',
     contact: 'اتصل',
     whatsapp: 'واتساب',
     chatWithUs: 'تحدث معنا',
@@ -339,7 +339,7 @@ export const translations = {
     addNewProduct: 'إضافة منتج جديد',
     editProduct: 'تعديل المنتج',
     productName: 'اسم المنتج',
-    productNamePlaceholder: 'مثال: منفضة سيراميك كلاسيكية',
+    productNamePlaceholder: 'مثال: تفاية سيراميك كلاسيكية',
     description: 'الوصف',
     descriptionPlaceholder: 'صف المنتج...',
     price: 'السعر (درهم)',
