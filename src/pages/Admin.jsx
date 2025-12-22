@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Edit2, Trash2, Home, Save, X, Upload } from 'lucide-react'
+import { Plus, Edit2, Trash2, Home, Save, X, Upload, Lock } from 'lucide-react'
 import API_URL from '../config'
 import AdminDashboard from '../components/AdminDashboard'
 
 const Admin = () => {
   const navigate = useNavigate()
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [products, setProducts] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
@@ -18,9 +21,24 @@ const Admin = () => {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
 
+  const ADMIN_PASSWORD = 'tafaya2026'
+
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (isAuthenticated) {
+      fetchProducts()
+    }
+  }, [isAuthenticated])
+
+  const handleLogin = (e) => {
+    e.preventDefault()
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthenticated(true)
+      setPasswordError('')
+    } else {
+      setPasswordError('Mot de passe incorrect')
+      setPassword('')
+    }
+  }
 
   const fetchProducts = async () => {
     try {
@@ -135,6 +153,67 @@ const Admin = () => {
     setShowForm(false)
   }
 
+  // Login screen if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center px-4">
+        <div className="max-w-md w-full">
+          <div className="bg-dark-800 border-2 border-gold-600 border-opacity-30 rounded-2xl shadow-2xl p-8">
+            {/* Logo/Title */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gold-gradient rounded-full mb-4">
+                <Lock className="w-8 h-8 text-dark-900" />
+              </div>
+              <h1 className="text-3xl font-black text-white mb-2">Admin Panel</h1>
+              <p className="text-gray-400">Tafaya Shop</p>
+            </div>
+
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-400 mb-2">
+                  Mot de passe
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Entrez le mot de passe admin"
+                  className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 transition-all"
+                  required
+                  autoFocus
+                />
+                {passwordError && (
+                  <p className="text-red-400 text-sm mt-2 flex items-center gap-2">
+                    <span>⚠️</span> {passwordError}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gold-gradient hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] text-dark-900 py-3 rounded-xl font-bold text-lg transition-all shadow-xl transform hover:scale-105 uppercase tracking-wider"
+              >
+                Se connecter
+              </button>
+            </form>
+
+            {/* Back to shop link */}
+            <div className="mt-6 text-center">
+              <button
+                onClick={() => navigate('/')}
+                className="text-gray-400 hover:text-gold-400 transition-colors text-sm flex items-center gap-2 mx-auto"
+              >
+                <Home className="w-4 h-4" />
+                Retour à la boutique
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50">
       {/* Header */}
@@ -142,13 +221,22 @@ const Admin = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold text-primary">Admin Panel - Tafaya Shop</h1>
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
-            >
-              <Home className="w-5 h-5" />
-              <span>View Shop</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsAuthenticated(false)}
+                className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
+              >
+                <Lock className="w-5 h-5" />
+                <span>Déconnexion</span>
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
+              >
+                <Home className="w-5 h-5" />
+                <span>View Shop</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
