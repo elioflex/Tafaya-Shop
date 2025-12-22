@@ -1,11 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { LanguageProvider } from './contexts/LanguageContext'
 import Home from './pages/Home'
 import Admin from './pages/Admin'
 import ProductDetail from './pages/ProductDetail'
+import { startKeepAlive } from './utils/keepAlive'
 
 function App() {
+  useEffect(() => {
+    // Start pinging backend to prevent spin-down
+    startKeepAlive()
+  }, [])
+
   return (
     <LanguageProvider>
       <Router>
