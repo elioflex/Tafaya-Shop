@@ -15,11 +15,9 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageZoom, setImageZoom] = useState(false)
-  const [customization, setCustomization] = useState({
-    size: '',
-    color: '',
-    design: '',
-    notes: ''
+  const [orderDetails, setOrderDetails] = useState({
+    quantity: 1,
+    address: ''
   })
 
   useEffect(() => {
@@ -43,20 +41,14 @@ const ProductDetail = () => {
     let message = `${t('whatsappOrder', language)}\n\n*${product.name}*\n`
     
     if (product.price) {
-      message += `${t('price', language)}: ${product.price} MAD\n`
+      const totalPrice = product.price * orderDetails.quantity
+      message += `${t('price', language)}: ${product.price} MAD x ${orderDetails.quantity} = ${totalPrice} MAD\n`
     }
     
-    if (customization.size) {
-      message += `${t('size', language)}: ${customization.size}\n`
-    }
-    if (customization.color) {
-      message += `${t('colorPreference', language)}: ${customization.color}\n`
-    }
-    if (customization.design) {
-      message += `${t('designStyle', language)}: ${customization.design}\n`
-    }
-    if (customization.notes) {
-      message += `\n${t('additionalNotes', language)}:\n${customization.notes}`
+    message += `${t('quantity', language)}: ${orderDetails.quantity}\n`
+    
+    if (orderDetails.address) {
+      message += `\n${t('shippingAddress', language)}:\n${orderDetails.address}`
     }
 
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank')
@@ -201,65 +193,55 @@ const ProductDetail = () => {
                 </div>
               </div>
 
-              {/* Customization Options */}
+              {/* Order Details */}
               <div className="space-y-6 mb-8">
                 <h3 className="text-2xl font-bold text-white mb-4">
-                  {t('customizeOrder', language)}
+                  {t('orderDetails', language)}
                 </h3>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-400 mb-2">
-                    {t('size', language)}
+                    {t('quantity', language)}
                   </label>
-                  <select
-                    value={customization.size}
-                    onChange={(e) => setCustomization({ ...customization, size: e.target.value })}
-                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white transition-all"
-                  >
-                    <option value="">{t('selectSize', language)}</option>
-                    <option value="Small">{t('small', language)} (8cm)</option>
-                    <option value="Medium">{t('medium', language)} (12cm)</option>
-                    <option value="Large">{t('large', language)} (16cm)</option>
-                    <option value="Custom">{t('customSize', language)}</option>
-                  </select>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => setOrderDetails({ ...orderDetails, quantity: Math.max(1, orderDetails.quantity - 1) })}
+                      className="bg-dark-900 border-2 border-gold-600 border-opacity-20 text-gold-400 w-12 h-12 rounded-xl font-bold text-xl hover:border-opacity-50 transition-all"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      value={orderDetails.quantity}
+                      onChange={(e) => setOrderDetails({ ...orderDetails, quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                      className="w-24 px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white text-center font-bold text-lg transition-all"
+                    />
+                    <button
+                      onClick={() => setOrderDetails({ ...orderDetails, quantity: orderDetails.quantity + 1 })}
+                      className="bg-dark-900 border-2 border-gold-600 border-opacity-20 text-gold-400 w-12 h-12 rounded-xl font-bold text-xl hover:border-opacity-50 transition-all"
+                    >
+                      +
+                    </button>
+                  </div>
+                  {product.price && (
+                    <p className="text-gray-400 mt-2">
+                      {t('total', language)}: <span className="text-gold-400 font-bold text-xl">{product.price * orderDetails.quantity} MAD</span>
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-400 mb-2">
-                    {t('colorPreference', language)}
-                  </label>
-                  <input
-                    type="text"
-                    value={customization.color}
-                    onChange={(e) => setCustomization({ ...customization, color: e.target.value })}
-                    placeholder={t('colorPlaceholder', language)}
-                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 mb-2">
-                    {t('designStyle', language)}
-                  </label>
-                  <input
-                    type="text"
-                    value={customization.design}
-                    onChange={(e) => setCustomization({ ...customization, design: e.target.value })}
-                    placeholder={t('designPlaceholder', language)}
-                    className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-400 mb-2">
-                    {t('additionalNotes', language)}
+                    {t('shippingAddress', language)}
                   </label>
                   <textarea
-                    value={customization.notes}
-                    onChange={(e) => setCustomization({ ...customization, notes: e.target.value })}
-                    placeholder={t('notesPlaceholder', language)}
+                    value={orderDetails.address}
+                    onChange={(e) => setOrderDetails({ ...orderDetails, address: e.target.value })}
+                    placeholder={t('addressPlaceholder', language)}
                     rows="4"
                     className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 resize-none transition-all"
+                    required
                   />
                 </div>
               </div>
