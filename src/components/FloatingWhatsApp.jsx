@@ -1,10 +1,14 @@
 import React from 'react'
 import { MessageCircle } from 'lucide-react'
+import { useLanguage } from '../contexts/LanguageContext'
+import { t } from '../translations/translations'
 
 const FloatingWhatsApp = () => {
+  const { language } = useLanguage()
+  
   const openWhatsApp = () => {
     const phone = '212684048574'
-    const message = encodeURIComponent('Hello! I would like to know more about your handmade Tafaya ashtrays.')
+    const message = encodeURIComponent(t('whatsappGreeting', language))
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
   }
 
