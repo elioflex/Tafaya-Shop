@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, MessageCircle, ShoppingBag, Share2, Heart, ZoomIn, Star, Shield, Truck } from 'lucide-react'
+import { Helmet } from 'react-helmet-async'
+import { ArrowLeft, MessageCircle, ShoppingBag, Share2, Heart, ZoomIn, Star, Shield, Truck, Eye, Package } from 'lucide-react'
 import API_URL from '../config'
+import { socialLinks, siteConfig } from '../siteConfig'
 import { useLanguage } from '../contexts/LanguageContext'
 import { t } from '../translations/translations'
 import FloatingWhatsApp from '../components/FloatingWhatsApp'
@@ -15,6 +17,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
   const [imageZoom, setImageZoom] = useState(false)
+  const [selectedVariants, setSelectedVariants] = useState({})
   const [orderDetails, setOrderDetails] = useState({
     quantity: 1,
     address: ''
@@ -24,11 +27,29 @@ const ProductDetail = () => {
     fetchProduct()
   }, [id])
 
+  // Track view when product loads
+  useEffect(() => {
+    if (product) {
+      trackView()
+    }
+  }, [product?.id])
+
   const fetchProduct = async () => {
     try {
       const response = await fetch(`${API_URL}/api/products/${id}`)
       const data = await response.json()
       setProduct(data)
+
+      // Initialize variant selections
+      if (data.variants && data.variants.length > 0) {
+        const initialVariants = {}
+        data.variants.forEach(variant => {
+          if (variant.options && variant.options.length > 0) {
+            initialVariants[variant.name] = variant.options[0]
+          }
+        })
+        setSelectedVariants(initialVariants)
+      }
     } catch (error) {
       console.error('Error fetching product:', error)
     } finally {
@@ -36,17 +57,45 @@ const ProductDetail = () => {
     }
   }
 
-  const orderOnWhatsApp = () => {
-    const phone = '212684048574'
-    let message = `${t('whatsappOrder', language)}\n\n*${product.name}*\n`
-    
-    if (product.price) {
-      const totalPrice = product.price * orderDetails.quantity
-      message += `${t('price', language)}: ${product.price} MAD x ${orderDetails.quantity} = ${totalPrice} MAD\n`
+  const trackView = async () => {
+    try {
+      await fetch(`${API_URL}/api/products/${id}/view`, { method: 'POST' })
+    } catch (error) {
+      console.error('Error tracking view:', error)
     }
-    
+  }
+
+  const isOutOfStock = product?.stock !== null && product?.stock !== undefined && product?.stock <= 0
+
+  const calculatePrice = () => {
+    if (!product?.price) return null
+    let price = product.price
+    Object.values(selectedVariants).forEach(variant => {
+      if (variant.priceModifier) {
+        price += variant.priceModifier
+      }
+    })
+    return price
+  }
+
+  const orderOnWhatsApp = () => {
+    if (isOutOfStock) return
+    const phone = socialLinks.whatsapp
+    let message = `${t('whatsappOrder', language)}\n\n*${product.name}*\n`
+
+    // Add variant selections
+    Object.entries(selectedVariants).forEach(([name, option]) => {
+      message += `${name}: ${option.value}\n`
+    })
+
+    const unitPrice = calculatePrice()
+    if (unitPrice) {
+      const totalPrice = unitPrice * orderDetails.quantity
+      message += `${t('price', language)}: ${unitPrice} MAD x ${orderDetails.quantity} = ${totalPrice} MAD\n`
+    }
+
     message += `${t('quantity', language)}: ${orderDetails.quantity}\n`
-    
+
     if (orderDetails.address) {
       message += `\n${t('shippingAddress', language)}:\n${orderDetails.address}`
     }
@@ -92,8 +141,32 @@ const ProductDetail = () => {
     )
   }
 
+  const displayPrice = calculatePrice()
+
   return (
     <div className="min-h-screen bg-dark-900">
+      {/* SEO Meta Tags */}
+      <Helmet>
+        <title>{product.name} - {siteConfig.name}</title>
+        <meta name="description" content={product.description} />
+        <link rel="canonical" href={`${siteConfig.url}/product/${id}`} />
+
+        {/* OpenGraph */}
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={`${product.name} - ${siteConfig.name}`} />
+        <meta property="og:description" content={product.description} />
+        <meta property="og:image" content={product.image || `${siteConfig.url}${siteConfig.image}`} />
+        <meta property="og:url" content={`${siteConfig.url}/product/${id}`} />
+        {displayPrice && <meta property="product:price:amount" content={displayPrice} />}
+        <meta property="product:price:currency" content="MAD" />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={product.name} />
+        <meta name="twitter:description" content={product.description} />
+        <meta name="twitter:image" content={product.image} />
+      </Helmet>
+
       <FloatingWhatsApp />
 
       {/* Header */}
@@ -107,7 +180,7 @@ const ProductDetail = () => {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-semibold">{t('backToShop', language)}</span>
             </button>
-            
+
             <div className="flex items-center gap-3">
               <LanguageToggle />
               <button
@@ -132,7 +205,7 @@ const ProductDetail = () => {
         <div className="bg-dark-800 border border-gold-600 border-opacity-20 rounded-3xl shadow-2xl overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
             {/* Product Image */}
-            <div className="relative bg-dark-900 aspect-square lg:aspect-auto">
+            <div className={`relative bg-dark-900 aspect-square lg:aspect-auto ${isOutOfStock ? 'opacity-60' : ''}`}>
               <img
                 src={product.image || 'https://via.placeholder.com/800x800?text=Tafaya+Ashtray'}
                 alt={product.name}
@@ -143,8 +216,21 @@ const ProductDetail = () => {
               <div className="absolute bottom-4 right-4 bg-dark-800 border border-gold-600 border-opacity-30 rounded-full p-3 shadow-lg">
                 <ZoomIn className="w-5 h-5 text-gold-400" />
               </div>
-              <div className="absolute top-4 left-4 bg-gold-gradient text-dark-900 px-4 py-2 rounded-full font-bold uppercase tracking-wider">
-                {t('handmadeBadge', language)}
+              <div className="absolute top-4 left-4 flex flex-col gap-2">
+                {isOutOfStock ? (
+                  <div className="bg-red-600 text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider">
+                    {language === 'fr' ? 'Épuisé' : language === 'ar' ? 'نفذ' : 'Out of Stock'}
+                  </div>
+                ) : (
+                  <div className="bg-gold-gradient text-dark-900 px-4 py-2 rounded-full font-bold uppercase tracking-wider">
+                    {t('handmadeBadge', language)}
+                  </div>
+                )}
+                {product.stock !== null && product.stock !== undefined && product.stock > 0 && product.stock <= 5 && (
+                  <div className="bg-orange-500 text-white px-4 py-2 rounded-full font-bold">
+                    {language === 'fr' ? `Plus que ${product.stock}!` : language === 'ar' ? `${product.stock} فقط!` : `Only ${product.stock} left!`}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -153,21 +239,29 @@ const ProductDetail = () => {
               <h1 className="text-4xl lg:text-5xl font-black text-white mb-4">
                 {product.name}
               </h1>
-              
-              {/* Rating */}
-              <div className="flex items-center gap-2 mb-6">
-                <div className="flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-gold-400 fill-current" />
-                  ))}
+
+              {/* Rating & Views */}
+              <div className="flex items-center gap-4 mb-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="flex">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 text-gold-400 fill-current" />
+                    ))}
+                  </div>
+                  <span className="text-gray-400">(50+ {t('reviews', language)})</span>
                 </div>
-                <span className="text-gray-400">(50+ {t('reviews', language)})</span>
+                {product.views > 0 && (
+                  <div className="flex items-center gap-1 text-gray-500">
+                    <Eye className="w-4 h-4" />
+                    <span>{product.views} {language === 'fr' ? 'vues' : 'views'}</span>
+                  </div>
+                )}
               </div>
 
-              {product.price && (
+              {displayPrice && (
                 <div className="mb-8">
                   <p className="text-5xl font-black gold-shine mb-2">
-                    {product.price} <span className="text-2xl">MAD</span>
+                    {displayPrice} <span className="text-2xl">MAD</span>
                   </p>
                   <p className="text-gray-400">{t('freeDelivery', language)}</p>
                 </div>
@@ -176,6 +270,38 @@ const ProductDetail = () => {
               <p className="text-gray-300 text-lg mb-8 leading-relaxed">
                 {product.description}
               </p>
+
+              {/* Variant Selector */}
+              {product.variants && product.variants.length > 0 && (
+                <div className="space-y-4 mb-8">
+                  {product.variants.map((variant) => (
+                    <div key={variant.name}>
+                      <label className="block text-sm font-semibold text-gray-400 mb-2">
+                        {variant.name}
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {variant.options.map((option) => (
+                          <button
+                            key={option.value}
+                            onClick={() => setSelectedVariants({ ...selectedVariants, [variant.name]: option })}
+                            className={`px-4 py-2 rounded-lg font-semibold transition-all ${selectedVariants[variant.name]?.value === option.value
+                                ? 'bg-gold-gradient text-dark-900'
+                                : 'bg-dark-900 text-white border border-gold-600 border-opacity-20 hover:border-opacity-50'
+                              }`}
+                          >
+                            {option.value}
+                            {option.priceModifier && option.priceModifier !== 0 && (
+                              <span className="ml-1 text-sm">
+                                ({option.priceModifier > 0 ? '+' : ''}{option.priceModifier} MAD)
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Features */}
               <div className="grid grid-cols-3 gap-4 mb-8 p-6 bg-dark-900 border border-gold-600 border-opacity-20 rounded-xl">
@@ -207,26 +333,37 @@ const ProductDetail = () => {
                     <button
                       onClick={() => setOrderDetails({ ...orderDetails, quantity: Math.max(1, orderDetails.quantity - 1) })}
                       className="bg-dark-900 border-2 border-gold-600 border-opacity-20 text-gold-400 w-12 h-12 rounded-xl font-bold text-xl hover:border-opacity-50 transition-all"
+                      disabled={isOutOfStock}
                     >
                       -
                     </button>
                     <input
                       type="number"
                       min="1"
+                      max={product.stock || 999}
                       value={orderDetails.quantity}
-                      onChange={(e) => setOrderDetails({ ...orderDetails, quantity: Math.max(1, parseInt(e.target.value) || 1) })}
+                      onChange={(e) => {
+                        const max = product.stock || 999
+                        const val = Math.min(max, Math.max(1, parseInt(e.target.value) || 1))
+                        setOrderDetails({ ...orderDetails, quantity: val })
+                      }}
                       className="w-24 px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white text-center font-bold text-lg transition-all"
+                      disabled={isOutOfStock}
                     />
                     <button
-                      onClick={() => setOrderDetails({ ...orderDetails, quantity: orderDetails.quantity + 1 })}
+                      onClick={() => {
+                        const max = product.stock || 999
+                        setOrderDetails({ ...orderDetails, quantity: Math.min(max, orderDetails.quantity + 1) })
+                      }}
                       className="bg-dark-900 border-2 border-gold-600 border-opacity-20 text-gold-400 w-12 h-12 rounded-xl font-bold text-xl hover:border-opacity-50 transition-all"
+                      disabled={isOutOfStock}
                     >
                       +
                     </button>
                   </div>
-                  {product.price && (
+                  {displayPrice && (
                     <p className="text-gray-400 mt-2">
-                      {t('total', language)}: <span className="text-gold-400 font-bold text-xl">{product.price * orderDetails.quantity} MAD</span>
+                      {t('total', language)}: <span className="text-gold-400 font-bold text-xl">{displayPrice * orderDetails.quantity} MAD</span>
                     </p>
                   )}
                 </div>
@@ -242,6 +379,7 @@ const ProductDetail = () => {
                     rows="4"
                     className="w-full px-4 py-3 bg-dark-900 border-2 border-gold-600 border-opacity-20 rounded-xl focus:ring-2 focus:ring-gold-600 focus:border-gold-600 text-white placeholder-gray-500 resize-none transition-all"
                     required
+                    disabled={isOutOfStock}
                   />
                 </div>
               </div>
@@ -249,15 +387,21 @@ const ProductDetail = () => {
               {/* Order Button */}
               <button
                 onClick={orderOnWhatsApp}
-                className="w-full bg-green-500 hover:bg-green-600 text-white py-5 rounded-xl font-black text-lg transition-all shadow-xl hover:shadow-2xl flex items-center justify-center space-x-3 transform hover:scale-105 uppercase tracking-wider"
+                disabled={isOutOfStock}
+                className={`w-full py-5 rounded-xl font-black text-lg transition-all shadow-xl flex items-center justify-center space-x-3 uppercase tracking-wider ${isOutOfStock
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-2xl transform hover:scale-105'
+                  }`}
               >
                 <MessageCircle className="w-6 h-6" />
-                <span>{t('orderOnWhatsApp', language)}</span>
+                <span>{isOutOfStock ? (language === 'fr' ? 'Épuisé' : 'Out of Stock') : t('orderOnWhatsApp', language)}</span>
               </button>
 
-              <p className="text-center text-gray-500 text-sm mt-4">
-                {t('redirectMessage', language)}
-              </p>
+              {!isOutOfStock && (
+                <p className="text-center text-gray-500 text-sm mt-4">
+                  {t('redirectMessage', language)}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -287,3 +431,4 @@ const ProductDetail = () => {
 }
 
 export default ProductDetail
+

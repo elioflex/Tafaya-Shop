@@ -7,6 +7,7 @@ import AdminDashboard from '../components/AdminDashboard'
 const Admin = () => {
   const navigate = useNavigate()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [password, setPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [products, setProducts] = useState([])
@@ -16,12 +17,44 @@ const Admin = () => {
     name: '',
     description: '',
     price: '',
-    image: ''
+    image: '',
+    stock: ''
   })
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState('')
 
-  const ADMIN_PASSWORD = 'tafaya2026'
+  // Get auth token from localStorage
+  const getAuthToken = () => localStorage.getItem('adminToken')
+
+  // Get headers with auth token
+  const getAuthHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${getAuthToken()}`
+  })
+
+  // Check if already authenticated on mount
+  useEffect(() => {
+    const verifyToken = async () => {
+      const token = getAuthToken()
+      if (token) {
+        try {
+          const response = await fetch(`${API_URL}/api/admin/verify`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+          if (response.ok) {
+            setIsAuthenticated(true)
+          } else {
+            localStorage.removeItem('adminToken')
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error)
+          localStorage.removeItem('adminToken')
+        }
+      }
+      setIsLoading(false)
+    }
+    verifyToken()
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -29,15 +62,38 @@ const Admin = () => {
     }
   }, [isAuthenticated])
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-      setPasswordError('')
-    } else {
-      setPasswordError('Mot de passe incorrect')
+    setPasswordError('')
+
+    try {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem('adminToken', data.token)
+        setIsAuthenticated(true)
+        setPassword('')
+      } else {
+        setPasswordError(data.error || 'Mot de passe incorrect')
+        setPassword('')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setPasswordError('Erreur de connexion au serveur')
       setPassword('')
     }
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken')
+    setIsAuthenticated(false)
+    setProducts([])
   }
 
   const fetchProducts = async () => {
@@ -64,31 +120,32 @@ const Admin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     try {
       let imageUrl = formData.image
 
       if (imageFile) {
         const formDataUpload = new FormData()
         formDataUpload.append('image', imageFile)
-        
+
         const uploadResponse = await fetch(`${API_URL}/api/upload`, {
           method: 'POST',
+          headers: { 'Authorization': `Bearer ${getAuthToken()}` },
           body: formDataUpload
         })
-        
+
         if (!uploadResponse.ok) {
           const errorData = await uploadResponse.json()
           throw new Error(`Upload failed: ${errorData.error || 'Unknown error'}`)
         }
-        
+
         const uploadData = await uploadResponse.json()
         console.log('Upload response:', uploadData)
-        
+
         if (!uploadData.imageUrl) {
           throw new Error('No image URL returned from upload')
         }
-        
+
         imageUrl = uploadData.imageUrl
         console.log('Image URL to save:', imageUrl)
       }
@@ -101,13 +158,13 @@ const Admin = () => {
       if (editingProduct) {
         await fetch(`${API_URL}/api/products/${editingProduct.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(productData)
         })
       } else {
         await fetch(`${API_URL}/api/products`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify(productData)
         })
       }
@@ -126,7 +183,8 @@ const Admin = () => {
       name: product.name,
       description: product.description,
       price: product.price || '',
-      image: product.image || ''
+      image: product.image || '',
+      stock: product.stock !== null && product.stock !== undefined ? product.stock : ''
     })
     setImagePreview(product.image || '')
     setShowForm(true)
@@ -136,7 +194,8 @@ const Admin = () => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         await fetch(`${API_URL}/api/products/${id}`, {
-          method: 'DELETE'
+          method: 'DELETE',
+          headers: getAuthHeaders()
         })
         fetchProducts()
       } catch (error) {
@@ -146,11 +205,23 @@ const Admin = () => {
   }
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', price: '', image: '' })
+    setFormData({ name: '', description: '', price: '', image: '', stock: '' })
     setImageFile(null)
     setImagePreview('')
     setEditingProduct(null)
     setShowForm(false)
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-gold-600"></div>
+          <p className="mt-4 text-gray-400">Vérification...</p>
+        </div>
+      </div>
+    )
   }
 
   // Login screen if not authenticated
@@ -223,7 +294,7 @@ const Admin = () => {
             <h1 className="text-2xl font-bold text-primary">Admin Panel - Tafaya Shop</h1>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsAuthenticated(false)}
+                onClick={handleLogout}
                 className="flex items-center space-x-2 text-gray-600 hover:text-red-600 transition-colors"
               >
                 <Lock className="w-5 h-5" />
@@ -314,6 +385,20 @@ const Admin = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Stock (leave empty for unlimited)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.stock}
+                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="e.g., 10 (empty = unlimited)"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Product Image
                 </label>
                 <div className="space-y-4">
@@ -340,7 +425,7 @@ const Admin = () => {
                       placeholder="Enter image URL"
                     />
                   </div>
-                  
+
                   {imagePreview && (
                     <div className="mt-4">
                       <p className="text-sm text-gray-600 mb-2">Preview:</p>
@@ -379,7 +464,7 @@ const Admin = () => {
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-bold text-gray-800">Products ({products.length})</h2>
           </div>
-          
+
           {products.length === 0 ? (
             <div className="p-12 text-center text-gray-500">
               <p>No products yet. Add your first product to get started!</p>
@@ -396,10 +481,13 @@ const Admin = () => {
                       Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
+                      Price
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
+                      Stock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Views
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
@@ -419,16 +507,30 @@ const Admin = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-500 max-w-xs truncate">
-                          {product.description}
-                        </div>
+                        <div className="text-xs text-gray-500 max-w-xs truncate">{product.description}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
                           {product.price ? `${product.price} MAD` : '-'}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {product.stock === null || product.stock === undefined ? (
+                          <span className="text-sm text-gray-500">∞</span>
+                        ) : product.stock <= 0 ? (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            Out
+                          </span>
+                        ) : product.stock <= 3 ? (
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                            {product.stock}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-900">{product.stock}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{product.views || 0}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
@@ -459,3 +561,4 @@ const Admin = () => {
 }
 
 export default Admin
+

@@ -1,10 +1,13 @@
 import React from 'react'
-import { Package, Eye, TrendingUp, DollarSign } from 'lucide-react'
+import { Package, Eye, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react'
 
 const AdminDashboard = ({ products }) => {
   const totalProducts = products.length
   const totalValue = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0)
   const avgPrice = totalProducts > 0 ? (totalValue / totalProducts).toFixed(2) : 0
+  const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0)
+  const lowStockCount = products.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 3 && p.stock >= 0).length
+  const outOfStockCount = products.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 0).length
 
   const stats = [
     {
@@ -20,16 +23,16 @@ const AdminDashboard = ({ products }) => {
       color: 'bg-green-500'
     },
     {
-      icon: TrendingUp,
-      label: 'Average Price',
-      value: `${avgPrice} MAD`,
+      icon: Eye,
+      label: 'Total Views',
+      value: totalViews,
       color: 'bg-purple-500'
     },
     {
-      icon: Eye,
-      label: 'Published',
-      value: totalProducts,
-      color: 'bg-orange-500'
+      icon: AlertTriangle,
+      label: 'Low Stock',
+      value: `${lowStockCount} (${outOfStockCount} out)`,
+      color: lowStockCount > 0 ? 'bg-orange-500' : 'bg-gray-500'
     }
   ]
 
@@ -56,3 +59,4 @@ const AdminDashboard = ({ products }) => {
 }
 
 export default AdminDashboard
+

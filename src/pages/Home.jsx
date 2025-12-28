@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { ShoppingBag, MessageCircle, Instagram, Facebook, Sparkles } from 'lucide-react'
 import API_URL from '../config'
+import { socialLinks, siteConfig } from '../siteConfig'
 import { useLanguage } from '../contexts/LanguageContext'
 import { t } from '../translations/translations'
 import FloatingWhatsApp from '../components/FloatingWhatsApp'
@@ -35,7 +37,7 @@ const Home = () => {
   }
 
   const openWhatsApp = () => {
-    const phone = '212684048574'
+    const phone = socialLinks.whatsapp
     const message = encodeURIComponent(t('whatsappGreeting', language))
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
   }
@@ -54,6 +56,26 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-dark-900">
+      {/* SEO Meta Tags */}
+      <Helmet>
+        <title>{siteConfig.name} - {t('shopTagline', language)}</title>
+        <meta name="description" content={siteConfig.description} />
+        <meta name="keywords" content="ashtray, handmade, custom, morocco, tafaya, cendrier" />
+        <link rel="canonical" href={siteConfig.url} />
+
+        {/* OpenGraph */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${siteConfig.name} - ${t('shopTagline', language)}`} />
+        <meta property="og:description" content={siteConfig.description} />
+        <meta property="og:image" content={`${siteConfig.url}${siteConfig.image}`} />
+        <meta property="og:url" content={siteConfig.url} />
+
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={siteConfig.name} />
+        <meta name="twitter:description" content={siteConfig.description} />
+      </Helmet>
+
       {/* Floating WhatsApp Button */}
       <FloatingWhatsApp />
 
@@ -90,9 +112,9 @@ const Home = () => {
       <section className="relative py-20 px-4 overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <img 
-            src="/hero-background.png" 
-            alt="Background" 
+          <img
+            src="/hero-background.png"
+            alt="Background"
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-dark-900/60 via-dark-900/70 to-dark-900 opacity-90"></div>
@@ -286,13 +308,17 @@ const Home = () => {
               <h4 className="text-xl font-bold mb-4">{t('followUs', language)}</h4>
               <div className="flex space-x-4">
                 <a
-                  href="#"
+                  href={socialLinks.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-gray-800 hover:bg-primary p-3 rounded-full transition-colors"
                 >
                   <Instagram className="w-6 h-6" />
                 </a>
                 <a
-                  href="#"
+                  href={socialLinks.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="bg-gray-800 hover:bg-primary p-3 rounded-full transition-colors"
                 >
                   <Facebook className="w-6 h-6" />
