@@ -3,22 +3,30 @@ const express = require('express')
 const cors = require('cors')
 const multer = require('multer')
 const path = require('path')
-const fs = require('fs')
-const { v4: uuidv4 } = require('uuid')
+const mongoose = require('mongoose')
 const cloudinary = require('cloudinary').v2
 const jwt = require('jsonwebtoken')
+const Product = require('./models/Product')
 
 const app = express()
 const PORT = process.env.PORT || 5001
 
 // Validate required environment variables
-const requiredEnvVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'ADMIN_PASSWORD', 'JWT_SECRET']
+const requiredEnvVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'ADMIN_PASSWORD', 'JWT_SECRET', 'MONGODB_URI']
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])
 if (missingEnvVars.length > 0) {
   console.error('Missing required environment variables:', missingEnvVars.join(', '))
   console.error('Please create a .env file based on .env.example')
   process.exit(1)
 }
+
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err)
+    process.exit(1)
+  })
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -28,12 +36,6 @@ cloudinary.config({
 
 app.use(cors())
 app.use(express.json())
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-
-const uploadsDir = path.join(__dirname, 'uploads')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
 
 const storage = multer.memoryStorage()
 
@@ -53,12 +55,10 @@ const upload = multer({
   }
 })
 
-const dataFile = path.join(__dirname, 'products.json')
-
 // JWT Authentication Middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1] // Bearer TOKEN
+  const token = authHeader && authHeader.split(' ')[1]
 
   if (!token) {
     return res.status(401).json({ error: 'Access denied. No token provided.' })
@@ -71,26 +71,6 @@ const authenticateToken = (req, res, next) => {
     req.user = user
     next()
   })
-}
-
-const loadProducts = () => {
-  try {
-    if (fs.existsSync(dataFile)) {
-      const data = fs.readFileSync(dataFile, 'utf8')
-      return JSON.parse(data)
-    }
-  } catch (error) {
-    console.error('Error loading products:', error)
-  }
-  return []
-}
-
-const saveProducts = (products) => {
-  try {
-    fs.writeFileSync(dataFile, JSON.stringify(products, null, 2))
-  } catch (error) {
-    console.error('Error saving products:', error)
-  }
 }
 
 // Health check
@@ -114,9 +94,7 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ error: 'Invalid password' })
   }
 
-  // Generate JWT token (expires in 24 hours)
   const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '24h' })
-
   res.json({ token, message: 'Login successful' })
 })
 
@@ -126,80 +104,100 @@ app.get('/api/admin/verify', authenticateToken, (req, res) => {
 })
 
 // Public: Get all products
-app.get('/api/products', (req, res) => {
-  const products = loadProducts()
-  res.json(products)
+app.get('/api/products', async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 })
+    // Map _id to id for frontend compatibility
+    const mapped = products.map(p => ({ ...p.toObject(), id: p._id.toString() }))
+    res.json(mapped)
+  } catch (error) {
+    console.error('Error fetching products:', error)
+    res.status(500).json({ error: 'Failed to fetch products' })
+  }
 })
 
 // Public: Get single product
-app.get('/api/products/:id', (req, res) => {
-  const products = loadProducts()
-  const product = products.find(p => p.id === req.params.id)
-
-  if (product) {
-    res.json(product)
-  } else {
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+    if (product) {
+      res.json({ ...product.toObject(), id: product._id.toString() })
+    } else {
+      res.status(404).json({ error: 'Product not found' })
+    }
+  } catch (error) {
+    console.error('Error fetching product:', error)
     res.status(404).json({ error: 'Product not found' })
   }
 })
 
 // Public: Track product view
-app.post('/api/products/:id/view', (req, res) => {
-  const products = loadProducts()
-  const index = products.findIndex(p => p.id === req.params.id)
-
-  if (index !== -1) {
-    products[index].views = (products[index].views || 0) + 1
-    saveProducts(products)
-    res.json({ views: products[index].views })
-  } else {
+app.post('/api/products/:id/view', async (req, res) => {
+  try {
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      { $inc: { views: 1 } },
+      { new: true }
+    )
+    if (product) {
+      res.json({ views: product.views })
+    } else {
+      res.status(404).json({ error: 'Product not found' })
+    }
+  } catch (error) {
+    console.error('Error tracking view:', error)
     res.status(404).json({ error: 'Product not found' })
   }
 })
 
-
 // Protected: Create product
-app.post('/api/products', authenticateToken, (req, res) => {
-  const products = loadProducts()
-  const newProduct = {
-    id: uuidv4(),
-    ...req.body,
-    createdAt: new Date().toISOString()
+app.post('/api/products', authenticateToken, async (req, res) => {
+  try {
+    const productData = {
+      ...req.body,
+      stock: req.body.stock !== '' ? req.body.stock : null
+    }
+    const product = new Product(productData)
+    await product.save()
+    res.status(201).json({ ...product.toObject(), id: product._id.toString() })
+  } catch (error) {
+    console.error('Error creating product:', error)
+    res.status(500).json({ error: 'Failed to create product' })
   }
-
-  products.push(newProduct)
-  saveProducts(products)
-  res.status(201).json(newProduct)
 })
 
 // Protected: Update product
-app.put('/api/products/:id', authenticateToken, (req, res) => {
-  const products = loadProducts()
-  const index = products.findIndex(p => p.id === req.params.id)
-
-  if (index !== -1) {
-    products[index] = {
-      ...products[index],
+app.put('/api/products/:id', authenticateToken, async (req, res) => {
+  try {
+    const updateData = {
       ...req.body,
-      updatedAt: new Date().toISOString()
+      stock: req.body.stock !== '' ? req.body.stock : null,
+      updatedAt: new Date()
     }
-    saveProducts(products)
-    res.json(products[index])
-  } else {
-    res.status(404).json({ error: 'Product not found' })
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true })
+    if (product) {
+      res.json({ ...product.toObject(), id: product._id.toString() })
+    } else {
+      res.status(404).json({ error: 'Product not found' })
+    }
+  } catch (error) {
+    console.error('Error updating product:', error)
+    res.status(500).json({ error: 'Failed to update product' })
   }
 })
 
 // Protected: Delete product
-app.delete('/api/products/:id', authenticateToken, (req, res) => {
-  const products = loadProducts()
-  const filteredProducts = products.filter(p => p.id !== req.params.id)
-
-  if (filteredProducts.length < products.length) {
-    saveProducts(filteredProducts)
-    res.json({ message: 'Product deleted successfully' })
-  } else {
-    res.status(404).json({ error: 'Product not found' })
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id)
+    if (product) {
+      res.json({ message: 'Product deleted successfully' })
+    } else {
+      res.status(404).json({ error: 'Product not found' })
+    }
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    res.status(500).json({ error: 'Failed to delete product' })
   }
 })
 
@@ -245,4 +243,3 @@ app.post('/api/upload', authenticateToken, upload.single('image'), async (req, r
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
-
