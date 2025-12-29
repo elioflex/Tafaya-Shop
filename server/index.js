@@ -7,13 +7,16 @@ const mongoose = require('mongoose')
 const cloudinary = require('cloudinary').v2
 const jwt = require('jsonwebtoken')
 const Product = require('./models/Product')
+const Order = require('./models/Order')
+const Review = require('./models/Review') // New Order Model
 
 const app = express()
-const PORT = process.env.PORT || 5001
+const PORT = process.env.PORT || 10000
 
 // Validate required environment variables
 const requiredEnvVars = ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET', 'ADMIN_PASSWORD', 'JWT_SECRET', 'MONGODB_URI']
 const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName])
+
 if (missingEnvVars.length > 0) {
   console.error('Missing required environment variables:', missingEnvVars.join(', '))
   console.error('Please create a .env file based on .env.example')
@@ -240,6 +243,106 @@ app.post('/api/upload', authenticateToken, upload.single('image'), async (req, r
   }
 })
 
+// --- Order Routes ---
+
+// Create Order (Public)
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { customer, items, total } = req.body
+
+    // Basic validation
+    if (!customer || !items || !total) {
+      return res.status(400).json({ error: 'Missing required order fields' })
+    }
+
+    const order = new Order({
+      customer,
+      items,
+      total,
+      status: 'pending'
+    })
+
+    const savedOrder = await order.save()
+
+    // Reduce stock
+    for (const item of items) {
+      if (item.productId) {
+        await Product.findByIdAndUpdate(item.productId, {
+          $inc: { stock: -item.quantity }
+        })
+      }
+    }
+
+    res.status(201).json(savedOrder)
+  } catch (error) {
+    console.error('Error creating order:', error)
+    res.status(500).json({ error: 'Failed to create order' })
+  }
+})
+
+// Get All Orders (Protected)
+app.get('/api/orders', authenticateToken, async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 })
+    res.json(orders)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch orders' })
+  }
+})
+
+// Update Order Status (Protected)
+app.put('/api/orders/:id/status', authenticateToken, async (req, res) => {
+  try {
+    const { status } = req.body
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status, updatedAt: Date.now() },
+      { new: true }
+    )
+    res.json(order)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update order' })
+  }
+})
+
+// --- Review Routes ---
+
+// Get Reviews for a Product
+app.get('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const reviews = await Review.find({ productId: req.params.id }).sort({ createdAt: -1 })
+    res.json(reviews)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch reviews' })
+  }
+})
+
+// Add Review (Public for now)
+app.post('/api/products/:id/reviews', async (req, res) => {
+  try {
+    const { userName, rating, comment } = req.body
+    const productId = req.params.id
+
+    if (!userName || !rating || !comment) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    const review = new Review({
+      productId,
+      userName,
+      rating,
+      comment
+    })
+
+    const savedReview = await review.save()
+    res.status(201).json(savedReview)
+  } catch (error) {
+    console.error('Error saving review:', error)
+    res.status(500).json({ error: 'Failed to save review' })
+  }
+})
+
+// --- Start Server ---
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })

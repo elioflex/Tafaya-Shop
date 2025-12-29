@@ -4,6 +4,7 @@ import { ShoppingBag, MessageCircle, Instagram, Facebook, Sparkles } from 'lucid
 import API_URL from '../config'
 import { socialLinks, siteConfig } from '../siteConfig'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useCart } from '../contexts/CartContext'
 import { t } from '../translations/translations'
 import FloatingWhatsApp from '../components/FloatingWhatsApp'
 import TrustBadges from '../components/TrustBadges'
@@ -12,13 +13,18 @@ import SearchBar from '../components/SearchBar'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ProductCard from '../components/ProductCard'
 import LanguageToggle from '../components/LanguageToggle'
+import Footer from '../components/Footer'
 
 const Home = () => {
   const { language } = useLanguage()
+  const { cartCount, setIsCartOpen } = useCart()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const categories = ['All', 'Ashtrays', 'Home Decor', 'Accessories', 'Custom']
 
   useEffect(() => {
     fetchProducts()
@@ -43,10 +49,12 @@ const Home = () => {
   }
 
   const filteredProducts = products
-    .filter(product =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    .filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory
+      return matchesSearch && matchesCategory
+    })
     .sort((a, b) => {
       if (sortBy === 'price-low') return (a.price || 0) - (b.price || 0)
       if (sortBy === 'price-high') return (b.price || 0) - (a.price || 0)
@@ -96,6 +104,19 @@ const Home = () => {
             </div>
             <div className="flex items-center gap-3">
               <LanguageToggle />
+              <button
+                onClick={() => setIsCartOpen(true)}
+                className="relative p-2 rounded-full hover:bg-dark-700 transition-colors"
+              >
+                <div className="relative">
+                  <ShoppingBag className="w-6 h-6 text-gold-400" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </button>
               <button
                 onClick={openWhatsApp}
                 className="flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -201,12 +222,28 @@ const Home = () => {
           </div>
 
           {/* Search and Filter */}
-          <div className="mb-8">
+          <div className="mb-8 space-y-6">
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
               onClear={() => setSearchQuery('')}
             />
+
+            {/* Category Filter Pills */}
+            <div className="flex justify-center gap-3 flex-wrap">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-6 py-2 rounded-full font-medium transition-all ${selectedCategory === cat
+                    ? 'bg-gold-gradient text-dark-900 shadow-lg scale-105'
+                    : 'bg-dark-800 text-gray-400 hover:bg-dark-700 border border-dark-700'
+                    }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
 
             <div className="flex justify-center gap-4 flex-wrap">
               <select
@@ -277,63 +314,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-gradient-to-br from-primary to-secondary p-2 rounded-lg">
-                  <ShoppingBag className="w-6 h-6 text-white" />
-                </div>
-                <h4 className="text-2xl font-bold">{t('shopName', language)}</h4>
-              </div>
-              <p className="text-gray-400 leading-relaxed">
-                {t('footerDescription', language)}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="text-xl font-bold mb-4">{t('contact', language)}</h4>
-              <p className="text-gray-400 mb-2">{t('whatsapp', language)}: +212 6 84 04 85 74</p>
-              <button
-                onClick={openWhatsApp}
-                className="mt-3 flex items-center space-x-2 text-green-400 hover:text-green-300 transition-colors"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>{t('chatWithUs', language)}</span>
-              </button>
-            </div>
-
-            <div>
-              <h4 className="text-xl font-bold mb-4">{t('followUs', language)}</h4>
-              <div className="flex space-x-4">
-                <a
-                  href={socialLinks.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-800 hover:bg-primary p-3 rounded-full transition-colors"
-                >
-                  <Instagram className="w-6 h-6" />
-                </a>
-                <a
-                  href={socialLinks.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-gray-800 hover:bg-primary p-3 rounded-full transition-colors"
-                >
-                  <Facebook className="w-6 h-6" />
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center">
-            <p className="text-gray-400">
-              &copy; 2024 {t('shopName', language)}. {t('allRightsReserved', language)}
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

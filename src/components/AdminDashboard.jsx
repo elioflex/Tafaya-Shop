@@ -1,31 +1,37 @@
 import React from 'react'
 import { Package, Eye, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react'
 
-const AdminDashboard = ({ products }) => {
+const AdminDashboard = ({ products, orders = [] }) => {
   const totalProducts = products.length
-  const totalValue = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0)
-  const avgPrice = totalProducts > 0 ? (totalValue / totalProducts).toFixed(2) : 0
-  const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0)
+
+  // Inventory Value
+  const inventoryValue = products.reduce((sum, p) => sum + (parseFloat(p.price) || 0), 0)
+
+  // Order Stats
+  const totalRevenue = orders.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0)
+  const totalOrders = orders.length
+  const pendingOrders = orders.filter(o => o.status === 'pending').length
+
   const lowStockCount = products.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 3 && p.stock >= 0).length
   const outOfStockCount = products.filter(p => p.stock !== null && p.stock !== undefined && p.stock <= 0).length
 
   const stats = [
     {
-      icon: Package,
-      label: 'Total Products',
-      value: totalProducts,
-      color: 'bg-blue-500'
-    },
-    {
       icon: DollarSign,
-      label: 'Total Value',
-      value: `${totalValue.toFixed(0)} MAD`,
+      label: 'Total Revenue',
+      value: `${totalRevenue.toLocaleString()} MAD`,
       color: 'bg-green-500'
     },
     {
-      icon: Eye,
-      label: 'Total Views',
-      value: totalViews,
+      icon: Package,
+      label: 'Total Orders',
+      value: `${totalOrders} (${pendingOrders} new)`,
+      color: 'bg-blue-500'
+    },
+    {
+      icon: TrendingUp,
+      label: 'Inventory Value',
+      value: `${inventoryValue.toLocaleString()} MAD`,
       color: 'bg-purple-500'
     },
     {

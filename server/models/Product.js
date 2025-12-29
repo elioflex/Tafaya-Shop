@@ -15,6 +15,17 @@ const productSchema = new mongoose.Schema({
     image: {
         type: String
     },
+    images: [{
+        type: String
+    }],
+    category: {
+        type: String,
+        required: true,
+        default: 'Ashtrays'
+    },
+    tags: [{
+        type: String
+    }],
     stock: {
         type: Number,
         default: null
