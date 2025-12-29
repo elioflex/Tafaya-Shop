@@ -326,6 +326,10 @@ const ProductDetail = () => {
                   <div className="bg-red-600 text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider shadow-lg">
                     {language === 'fr' ? 'Épuisé' : language === 'ar' ? 'نفذ' : 'Out of Stock'}
                   </div>
+                ) : product.stock === null || product.stock === undefined ? (
+                  <div className="bg-blue-600 text-white px-4 py-2 rounded-full font-bold uppercase tracking-wider shadow-lg">
+                    {language === 'fr' ? 'Sur Commande' : language === 'ar' ? 'تحت الطلب' : 'Made to Order'}
+                  </div>
                 ) : (
                   <div className="bg-gold-gradient text-dark-900 px-4 py-2 rounded-full font-bold uppercase tracking-wider shadow-lg">
                     {t('handmadeBadge', language)}

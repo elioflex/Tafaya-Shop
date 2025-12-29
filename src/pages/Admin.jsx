@@ -481,22 +481,26 @@ const Admin = () => {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Category
                       </label>
-                      <select
+                      <input
+                        list="categories"
+                        type="text"
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
-                      >
-                        <option value="Ashtrays">Ashtrays</option>
-                        <option value="Home Decor">Home Decor</option>
-                        <option value="Accessories">Accessories</option>
-                        <option value="Custom">Custom</option>
-                      </select>
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="Select or type a category"
+                      />
+                      <datalist id="categories">
+                        <option value="Ashtrays" />
+                        <option value="Home Decor" />
+                        <option value="Accessories" />
+                        <option value="Custom" />
+                      </datalist>
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Stock (leave empty for unlimited)
+                      Stock (leave empty for "Made to Order")
                     </label>
                     <input
                       type="number"
@@ -504,13 +508,16 @@ const Admin = () => {
                       value={formData.stock}
                       onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="e.g., 10 (empty = unlimited)"
+                      placeholder="e.g., 10 (empty = Made to Order)"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Product Image
+                      <span className="block text-xs text-gray-500 font-normal mt-1">
+                        Main image displayed on the product card and as the cover.
+                      </span>
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -563,6 +570,9 @@ const Admin = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Gallery Images
+                      <span className="block text-xs text-gray-500 font-normal mt-1">
+                        Additional images displayed in the slider on the product details page.
+                      </span>
                     </label>
                     <div className="space-y-4">
                       <div className="flex items-center space-x-4">
@@ -699,7 +709,9 @@ const Admin = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {product.stock === null || product.stock === undefined ? (
-                              <span className="text-sm text-gray-500">∞</span>
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                                Made to Order
+                              </span>
                             ) : product.stock <= 0 ? (
                               <span className="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                                 Out

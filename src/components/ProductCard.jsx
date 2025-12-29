@@ -46,6 +46,10 @@ const ProductCard = ({ product }) => {
           <div className="bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
             {language === 'fr' ? 'Épuisé' : language === 'ar' ? 'نفذ' : 'Out of Stock'}
           </div>
+        ) : product.stock === null || product.stock === undefined ? (
+          <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+            {language === 'fr' ? 'Sur Commande' : language === 'ar' ? 'تحت الطلب' : 'Made to Order'}
+          </div>
         ) : (
           <div className="bg-gold-gradient text-dark-900 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
             {t('handmadeBadge', language)}
@@ -112,8 +116,8 @@ const ProductCard = ({ product }) => {
               onClick={openWhatsApp}
               disabled={isOutOfStock}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all shadow-md uppercase tracking-wider ${isOutOfStock
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-lg'
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-green-500 hover:bg-green-600 text-white hover:shadow-lg'
                 }`}
             >
               <MessageCircle className="w-4 h-4" />
